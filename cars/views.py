@@ -1,9 +1,12 @@
 import django_filters
 from django.http import HttpResponse, HttpResponseNotFound
 from rest_framework import generics
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 
 from .filters import CarModelFilter
+from .permissions import IsOwnerOrReadOnly
 from .serializers import CarSerializer, CarImageSerializer
 from .models import CarModel, CarImage
 
@@ -16,44 +19,43 @@ class CarListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = CarSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_class = CarModelFilter
+    ordering_fields = ['manufacturer', 'year', 'price', 'engine_capacity']
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
-class CarRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        ordering = self.request.query_params.get('ordering')
+        if ordering:
+            queryset = queryset.order_by(ordering)
+        return queryset
+
+
+
+class CarAPIUpdate(generics.RetrieveUpdateAPIView):
     queryset = CarModel.objects.all()
     serializer_class = CarSerializer
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
-class CarImageAPIView(generics.RetrieveUpdateDestroyAPIView):
+class CarAPIDestroy(generics.RetrieveDestroyAPIView):
+    queryset = CarModel.objects.all()
+    serializer_class = CarSerializer
+    permission_classes = (IsAuthenticated, )
+
+
+
+class ImageAPIList(generics.ListCreateAPIView):
     queryset = CarImage.objects.all()
     serializer_class = CarImageSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
 
-    def patch(self, request, *args, **kwargs):
-        kwargs['partial'] = True
-        return self.update(request, *args, **kwargs)
+class ImageAPIUpdate(generics.RetrieveUpdateAPIView):
+    queryset = CarImage.objects.all()
+    serializer_class = CarImageSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
+class ImageAPIDestroy(generics.RetrieveDestroyAPIView):
+    queryset = CarImage.objects.all()
+    serializer_class = CarImageSerializer
+    permission_classes = (IsAuthenticated, )

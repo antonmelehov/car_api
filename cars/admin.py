@@ -33,6 +33,3 @@ class CarImageAdmin(admin.ModelAdmin):
 
     image_tag.short_description = 'Image'
 
-
-
-# admin.site.register(CarModel, CarsAdmin)
