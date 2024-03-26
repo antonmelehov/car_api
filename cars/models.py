@@ -20,6 +20,7 @@ class CarModel(models.Model):
     color = models.CharField(max_length=50)
     slug = models.SlugField(max_length=100, unique=True, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.model)
@@ -31,8 +32,8 @@ class CarModel(models.Model):
         return f"{self.manufacturer} {self.model} ({self.year})"
 
 class CarImage(models.Model):
-    car = models.ForeignKey(CarModel, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='media/car_images/')
+    car = models.ForeignKey(CarModel, on_delete=models.CASCADE, related_name='image')
+    image = models.ImageField(upload_to='car_images/')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
