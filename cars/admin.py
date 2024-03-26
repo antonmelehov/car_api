@@ -14,7 +14,7 @@ class CarsAdmin(admin.ModelAdmin):
     list_filter = ('model', 'manufacturer__name', 'year', 'price', 'color', 'engine_capacity')
 
     def image_tag(self, obj):
-        return format_html('<img src="{}" style="max-width:200px; max-height:200px"/>'.format(obj.image.image.url))
+        return format_html('<img src="{}" style="max-width:200px; max-height:200px"/>'.format(obj.image.get().image.url))
 
 
 @admin.register(Manufacturer)
@@ -26,7 +26,8 @@ class ManufacturerAdmin(admin.ModelAdmin):
 
 @admin.register(CarImage)
 class CarImageAdmin(admin.ModelAdmin):
-    readonly_fields = ['image_tag']
+    readonly_fields = ('image_tag',)
+    list_display_links = ('car',)
     list_display = ('id', 'car', 'image_tag')
     #list_editable = ('image', )
     list_per_page = 5
@@ -35,4 +36,3 @@ class CarImageAdmin(admin.ModelAdmin):
         return format_html('<img src="{}" style="max-width:200px; max-height:200px"/>'.format(obj.image.url))
 
     image_tag.short_description = 'Image'
-
