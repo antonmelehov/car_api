@@ -17,3 +17,6 @@ Clone the repository to your local machine.
  
  
 "username": "root", "password": "1234"
+
+
+http://127.0.0.1:8000/schema/swagger-ui/
